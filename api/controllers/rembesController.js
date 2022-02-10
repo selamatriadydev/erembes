@@ -12,12 +12,12 @@ const getPagination = (page, size) => {
 module.exports.list_limit = function (req, res, next) {
 // const { page, size } = req.query;
     const size = 10;
-    // const { page } = req.params;
-    const { page } = req.query;
+    const { iduser } = req.params;
+    const { page  } = req.query;
     // const { page } = 1;
     const { limit, offset } = getPagination(page, size);
 
-    Rembes.paginate({}, { offset, limit })
+    Rembes.paginate({rembesuserid: iduser}, { offset, limit })
     .then((data) => {
       var hasil = {
         totalItems: data.totalDocs,
@@ -49,18 +49,38 @@ module.exports.list = function (req, res, next) {
 // Get one
 module.exports.show = function(req, res) {
   var id = req.params.id;
-  Rembes.findOne({_id: id}, function(err, data){
-      if(err) {
-          return res.status(500).json({
-              message: 'Error getting record.'
-          });
-      }
-      if(!data) {
-          return res.status(404).json({
-              message: 'No such record'
-          });
-      }
-      return res.json(data);
+  Rembes
+  .findOne({ _id: id })
+  .populate('rembesuserid')
+  .populate('rembesproid')
+  .then((data) => {
+    return res.json(data);
+  })
+  .catch((err) => {
+    return res.status(500).json({
+      message: 'Error getting records.'
+    });
+  });
+  // Rembes.findOne({_id: id}, function(err, data){
+  //     if(err) {
+  //         return res.status(500).json({
+  //             message: 'Error getting record.'
+  //         });
+  //     }
+  //     if(!data) {
+  //         return res.status(404).json({
+  //             message: 'No such record'
+  //         });
+  //     }
+  //     return res.json(data);
+  // });
+}
+// Get uploadImg
+module.exports.uploadImg = function(req, res) {
+  var file = req.file.name;
+  return res.json({
+      message: 'saved',
+      file: file
   });
 }
 
@@ -81,7 +101,9 @@ module.exports.create = [
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.mapped() });
     }
-
+    let host_get = req.headers.host;
+    let host_url = host_get.replace('/public', '');
+    let file_url = 'http://' + host_url+'/api/uploads/'+req.body.rembesimage;
     // initialize record
     var rembes = new Rembes({
         rembesuserid : req.body.rembesuserid,
@@ -89,9 +111,9 @@ module.exports.create = [
         rembestgl : req.body.rembestgl,
         rembesnilai : req.body.rembesnilai,
         rembesimage : req.body.rembesimage,
+        rembesimageurl :file_url,
         rembesdesc : req.body.rembesdesc,
     })
-
     // save record
     rembes.save(function(err, data){
         if(err) {
@@ -138,12 +160,16 @@ module.exports.update = [
                 message: 'No such record'
             });
         }
+        let host_get = req.headers.host;
+        let host_url = host_get.replace('/public', '');
+        let file_url = 'http://' + host_url+'/api/uploads/'+req.body.rembesimage;
         // initialize record
         data.rembesuserid =  req.body.rembesuserid ? req.body.rembesuserid : data.rembesuserid;
         data.rembesproid =  req.body.rembesproid ? req.body.rembesproid : data.rembesproid;
         data.rembestgl =  req.body.rembestgl ? req.body.rembestgl : data.rembestgl;
         data.rembesnilai =  req.body.rembesnilai ? req.body.rembesnilai : data.rembesnilai;
         data.rembesimage =  req.body.rembesimage ? req.body.rembesimage : data.rembesimage;
+        data.rembesimageurl =  req.body.rembesimage ? file_url : data.rembesimageurl;
         data.rembesdesc =  req.body.rembesdesc ? req.body.rembesdesc : data.rembesdesc;
 
         // save record

@@ -36,7 +36,8 @@ module.exports = {
     '@nuxtjs/tailwindcss',
     // Doc: https://axios.nuxtjs.org/usage
     '@nuxtjs/auth',
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    '@nuxtjs/date-fns',
   ],
   auth: {
     strategies: {
@@ -64,6 +65,9 @@ module.exports = {
       home: '/' // User will be redirect to this path after login if accessed login page directly
     },
     rewriteRedirects: true,
+  },
+  dateFns: {
+    /* module options */
   },
 
   /*

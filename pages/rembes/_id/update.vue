@@ -15,7 +15,7 @@
                                 Proyek
                             </label>
                             <select class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
-                            v-model="id_proyek">
+                            v-model="rembesproid">
                                     <option v-for="(item,index) in proyeks" :key="index" :value="item._id">{{ item.proyekname }}</option>
                             </select>
                             <p class="text-red-500 text-xs italic" v-if="errors && errors.rembesproid">
@@ -37,11 +37,12 @@
                                 Tanggal Transaksi
                             </label>
                             <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-password" type="date" placeholder=""
-                            :class="{ 'is-invalid': errors && errors.tgl }"
-                        v-model="tgl">
+                            :class="{ 'is-invalid': errors && errors.rembestgl }"
+                            v-model="rembestgl">
                             <p class="text-red-500 text-xs italic" v-if="errors && errors.rembestgl">
                                 {{ errors.rembestgl.msg }}
                             </p>
+                            {{ rembestgl }}
                         </div>
                         <div class="w-full md:w-1/2 px-3">
                             <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-last-name">
@@ -49,11 +50,12 @@
                             </label>
                             <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-last-name" 
                             type="file" placeholder="" 
-                            :class="{ 'is-invalid': errors && errors.image }"
+                            :class="{ 'is-invalid': errors && errors.rembesimage }"
                             ref="image"
                             name="image"
                             accept="image/*"
                             @change="imageSelected">
+                            <img class="object-fill h-20 w-50" :src="rembesimageurl">
                             <p class="text-red-500 text-xs italic" v-if="errors && errors.rembesimage">
                                 {{ errors.rembesimage.msg }}
                             </p>
@@ -66,7 +68,7 @@
                             </label>
                             <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-last-name" 
                             type="text" placeholder="" 
-                            v-model="nilai"
+                            v-model="rembesnilai"
                             :class="{ 'is-invalid': errors && errors.rembesnilai }">
                             <p class="text-red-500 text-xs italic" v-if="errors && errors.rembesnilai">
                                 {{ errors.rembesnilai.msg }}
@@ -80,7 +82,7 @@
                             </label>
                             <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-last-name" 
                             type="text" placeholder="" 
-                            v-model="desc"
+                            v-model="rembesdesc"
                             :class="{ 'is-invalid': errors && errors.rembesdesc }">
                             <p class="text-red-500 text-xs italic" v-if="errors && errors.rembesdesc">
                                 {{ errors.rembesdesc.msg }}
@@ -89,7 +91,7 @@
                     </div>
                     <div class="md:flex md:items-center">
                         <div class="md:w-1/3">
-                        <nuxt-link to="/parameter" class="shadow bg-yellow-500 hover:bg-yellow-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
+                        <nuxt-link to="/rembes" class="shadow bg-yellow-500 hover:bg-yellow-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
                             Back
                         </nuxt-link>
                         </div>
@@ -107,24 +109,43 @@
 <script>
 export default {
     middleware:'auth',
+        async asyncData(context){
+            const {data} = await context.$axios.get('/api/rembes/' + context.route.params.id)
+            return {
+                proyek : data
+            }
+        },
     data(){
         return{
             user_rembes: this.$auth.user.full_name,
-            proyeks: [],
             errors:null,
-            id_user:this.$auth.user._id,
-            id_proyek:null,
-            tgl:null,
-            nilai:null,
+            proyeks:[],
+            rembesuserid:null,
+            rembesproid:null,
+            rembestgl:null,
+            rembesnilai:null,
+            rembesimage:null,
+            rembesimageurl:null,
+            rembesdesc:null,
             image:null,
-            image_name:null,
-            desc:null
         }
     },
     mounted(){
-        this.fetchParProyek()
+        this.fetchParProyek(),
+        this.fillFormData()
     },
     methods: {
+        fillFormData(){
+            let tgl = this.proyek.rembestgl;
+            let tgl_replace = this.$dateFns.format(tgl, 'mm/dd/yyyy');
+            this.rembesuserid=this.proyek.rembesuserid;
+            this.rembesproid=this.proyek.rembesproid;
+            this.rembestgl=tgl_replace;
+            this.rembesnilai=this.proyek.rembesnilai;
+            this.rembesimage=this.proyek.rembesimage;
+            this.rembesimageurl=this.proyek.rembesimageurl;
+            this.rembesdesc=this.proyek.rembesdesc;
+        },
         async fetchParProyek(){
             const {data} = await this.$axios.get('/api/proyek')
             this.proyeks = data
@@ -132,20 +153,20 @@ export default {
         imageSelected(e) {
             this.$emit('input', e.target.files[0]);
             this.image = this.$refs.image.files[0];
-            this.image_name = this.image.name;
+            this.rembesimage = this.image.name;
             // console.log(this.image)
         },
         async submitForm(){
-            if(this.image.name.length > 0){
+            if(this.image !== null && this.image.name.length){
                 this.upload_photo();
             }
-            this.$axios.post( '/api/rembes', {
-                    rembesuserid : this.id_user,
-                    rembesproid : this.id_proyek,
-                    rembestgl : this.tgl,
-                    rembesnilai : this.nilai,
-                    rembesimage : this.image_name,
-                    rembesdesc : this.desc,
+            this.$axios.put( '/api/rembes/'+ this.$route.params.id, {
+                    rembesuserid : this.rembesuserid,
+                    rembesproid : this.rembesproid,
+                    rembestgl : this.rembestgl,
+                    rembesnilai : this.rembesnilai,
+                    rembesimage : this.rembesimage,
+                    rembesdesc : this.rembesdesc,
                 })
                 .then((response) => {
                 // console.log(response)

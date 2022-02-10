@@ -19,9 +19,11 @@
                         <tr  v-for="(item,index) in proyeks" :key="index">
                             <td>{{ item.rembestgl }}</td>
                             <td>{{ item.rembesnilai }}</td>
-                            <td>{{ item.rembesimage }}</td>
                             <td>
-                                <nuxt-link :to="'/parameter/' + item._id"
+                                <img class="object-fill h-10 w-30" :src="item.rembesimageurl">
+                            </td>
+                            <td>
+                                <nuxt-link :to="'/rembes/' + item._id"
                                 class="bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-yellow-200 dark:text-yellow-900">Info</nuxt-link>
                             </td>
                         </tr>
@@ -47,6 +49,7 @@ export default {
     data () {
         return {
             user_rembes: this.$auth.user.full_name,
+            user_id: this.$auth.user._id,
             proyeks: [],
             isLoading: true,
             pageNumber: this.$route.query.page ? this.$route.query.page : 1,
@@ -61,7 +64,7 @@ export default {
             let pageNumber = this.$route.query.page ? this.$route.query.page : 1;
             // if pada statement ini berfungi untuk menghilangkan screen flicker saat mengunjungi antar halaman
             if (this.proyeks.length <= 0) this.isLoading = true
-            const {data} = await this.$axios.get('/api/rembes_limit/'+pageNumber)
+            const {data} = await this.$axios.get('/api/rembes_limit/'+this.user_id+'/'+pageNumber)
             this.proyeks = data.rembes
             this.pageNumber = data.totalPages
             this.isLoading = false

@@ -6,8 +6,10 @@ const router = Router()
 // Initialize Controller
 const rembesController = require('../controllers/rembesController')
 
+const uploadImg = require('../uploads')
+
 // Get All
-router.get('/rembes_limit/:page', rembesController.list_limit)
+router.get('/rembes_limit/:iduser/:page', rembesController.list_limit)
 
 // Get All
 router.get('/rembes', rembesController.list)
@@ -17,6 +19,7 @@ router.get('/rembes/:id', rembesController.show)
 
 // Create
 router.post('/rembes', config.isAuthenticated, rembesController.create)
+router.post('/rembes_upload', uploadImg.uploadImg.single('rembesfile'), rembesController.uploadImg)
 
 // Update
 router.put('/rembes/:id', config.isAuthenticated, rembesController.update)

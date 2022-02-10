@@ -8,6 +8,7 @@ const Rembes = new Schema ({
   rembestgl: { type: Date, default:Date.now  },
   rembesnilai: { type: Number, default: 0 },
   rembesimage: { type: String, required: true },
+  rembesimageurl: { type: String, required: true },
   rembesdesc: { type: String, required: true },
 });
 Rembes.plugin(mongoosePaginate);
